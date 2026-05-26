@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portada — Airbnb · Análisis del mercado de hospedaje en Nueva York</title>
+  <meta name="description" content="Proyecto Final de Analítica y Ciencia de Datos: Análisis del mercado de hospedaje Airbnb en Nueva York. 48,895 listados, 5 distritos, 16 variables.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ===== RESET & VARIABLES ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --rausch:  #FF5A5F;
+      --babu:    #00A699;
+      --arches:  #FC642D;
+      --hof:     #484848;
+      --foggy:   #767676;
+      --white:   #FFFFFF;
+      --offwhite:#FAFAFA;
+    }
+
+    /* ===== KEYFRAMES ===== */
+
+    /* Page entrance — zoom in from slightly smaller */
+    @keyframes pageReveal {
+      0% { opacity: 0; transform: scale(0.96); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Fade + slide up */
+    @keyframes fadeSlideUp {
+      0% { opacity: 0; transform: translateY(32px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Fade + slide from left */
+    @keyframes fadeSlideLeft {
+      0% { opacity: 0; transform: translateX(-40px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Fade + slide from right */
+    @keyframes fadeSlideRight {
+      0% { opacity: 0; transform: translateX(40px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Title entrance — dramatic scale + fade */
+    @keyframes titleEntrance {
+      0% { opacity: 0; transform: translateY(50px) scale(0.85); letter-spacing: 0.08em; }
+      60% { opacity: 1; transform: translateY(-4px) scale(1.02); }
+      100% { opacity: 1; transform: translateY(0) scale(1); letter-spacing: -0.035em; }
+    }
+
+    /* Shimmer sweep for accent stripe */
+    @keyframes shimmerSweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(300%); }
+    }
+
+    /* Subtle glow pulse on the title */
+    @keyframes glowPulse {
+      0%, 100% { text-shadow: 0 0 0 transparent; }
+      50% { text-shadow: 0 0 40px rgba(255, 90, 95, 0.12), 0 0 80px rgba(255, 90, 95, 0.06); }
+    }
+
+    /* Badge pop-in */
+    @keyframes badgePopIn {
+      0% { opacity: 0; transform: scale(0.5) translateY(10px); }
+      70% { transform: scale(1.08) translateY(-2px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* City lights twinkling */
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.85; }
+    }
+
+    /* Skyline rise from bottom */
+    @keyframes skylineRise {
+      0% { opacity: 0; transform: translateY(60px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Footer dots sequential pulse */
+    @keyframes dotPulse {
+      0%, 100% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.5); opacity: 1; }
+    }
+
+    /* Soft float for skyline buildings */
+    @keyframes softFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* Stripe width grow */
+    @keyframes stripeGrow {
+      0% { width: 0; }
+      100% { width: calc(100% - 160px); }
+    }
+
+    /* Axis lines fade in */
+    @keyframes axisFade {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    /* ===== BODY ===== */
+    html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body {
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #e8e8e8;
+      background-image:
+        radial-gradient(ellipse at 30% 50%, rgba(255,90,95,.04) 0%, transparent 70%),
+        radial-gradient(ellipse at 70% 50%, rgba(0,166,153,.03) 0%, transparent 70%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* ===== PAGE CONTAINER ===== */
+    .page {
+      width: 1920px;
+      height: 1080px;
+      background: var(--white);
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 25px 80px rgba(0,0,0,.12),
+        0 4px 20px rgba(0,0,0,.06),
+        0 0 0 1px rgba(0,0,0,.03);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto 1fr auto;
+      animation: pageReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Background radial washes */
+    .page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 10% 20%, rgba(255,90,95,.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 80%, rgba(0,166,153,.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(252,100,45,.02) 0%, transparent 60%),
+        linear-gradient(135deg, var(--white) 0%, var(--offwhite) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .page > * { position: relative; z-index: 1; }
+
+    /* ===== AXIS LINES (decorative grid) ===== */
+    .axis-line-v {
+      position: absolute; top: 0; bottom: 0; width: 1px;
+      background: linear-gradient(180deg, transparent 5%, rgba(118,118,118,.06) 30%, rgba(118,118,118,.06) 70%, transparent 95%);
+      z-index: 0;
+      animation: axisFade 1.5s 0.5s ease both;
+    }
+    .axis-line-v.left   { left: 80px; }
+    .axis-line-v.center { left: 50%; }
+    .axis-line-v.right  { right: 80px; }
+    .axis-line-h {
+      position: absolute; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent 5%, rgba(118,118,118,.05) 20%, rgba(118,118,118,.05) 80%, transparent 95%);
+      z-index: 0;
+      animation: axisFade 1.5s 0.5s ease both;
+    }
+    .axis-line-h.top    { top: 60px; }
+    .axis-line-h.bottom { bottom: 80px; }
+
+    /* ===== TOP BAND ===== */
+    .top-band {
+      grid-column: 1 / -1;
+      padding: 40px 80px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .project-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--foggy);
+      animation: fadeSlideLeft 0.7s 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .diplomado-label {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--foggy);
+      animation: fadeSlideRight 0.7s 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    /* ===== ACCENT STRIPE ===== */
+    .accent-stripe {
+      grid-column: 1 / -1;
+      margin: 16px 80px 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--rausch) 0%, var(--rausch) 55%, var(--arches) 78%, var(--babu) 100%);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      animation: stripeGrow 1s 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      transform-origin: left center;
+    }
+    .accent-stripe::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 30%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+      animation: shimmerSweep 3.5s 1.5s ease-in-out infinite;
+    }
+
+    /* ===== LEFT CONTENT ===== */
+    .left-content {
+      padding: 50px 40px 50px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 28px;
+    }
+
+    .title-airbnb {
+      font-size: 140px;
+      font-weight: 900;
+      color: var(--rausch);
+      line-height: 0.88;
+      letter-spacing: -0.035em;
+      animation:
+        titleEntrance 1s 0.6s cubic-bezier(0.22, 1, 0.36, 1) both,
+        glowPulse 4s 2s ease-in-out infinite;
+      position: relative;
+    }
+
+    .subtitle {
+      font-size: 24px;
+      font-weight: 400;
+      color: var(--hof);
+      line-height: 1.4;
+      max-width: 600px;
+      margin-top: 14px;
+      animation: fadeSlideUp 0.8s 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .subtitle strong { font-weight: 700; }
+
+    /* ===== DATA BADGES ===== */
+    .data-badges { display: flex; gap: 14px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      border: 1.5px solid;
+      cursor: default;
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+    }
+    .badge:hover {
+      transform: translateY(-3px) scale(1.05);
+    }
+    .badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+    .badge:hover .dot {
+      transform: scale(1.4);
+    }
+
+    .badge-rausch {
+      color: var(--rausch);
+      border-color: rgba(255,90,95,.2);
+      background: rgba(255,90,95,.04);
+      animation: badgePopIn 0.6s 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .badge-rausch:hover { box-shadow: 0 6px 20px rgba(255,90,95,.18); }
+    .badge-rausch .dot { background: var(--rausch); }
+
+    .badge-babu {
+      color: var(--babu);
+      border-color: rgba(0,166,153,.2);
+      background: rgba(0,166,153,.04);
+      animation: badgePopIn 0.6s 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .badge-babu:hover { box-shadow: 0 6px 20px rgba(0,166,153,.18); }
+    .badge-babu .dot { background: var(--babu); }
+
+    .badge-arches {
+      color: var(--arches);
+      border-color: rgba(252,100,45,.2);
+      background: rgba(252,100,45,.04);
+      animation: badgePopIn 0.6s 1.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .badge-arches:hover { box-shadow: 0 6px 20px rgba(252,100,45,.18); }
+    .badge-arches .dot { background: var(--arches); }
+
+    /* ===== TEAM INFO ===== */
+    .team-info {
+      display: flex;
+      gap: 40px;
+      margin-top: 8px;
+      animation: fadeSlideUp 0.8s 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--foggy);
+      margin-bottom: 6px;
+      position: relative;
+      display: inline-block;
+    }
+    .section-label::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--rausch);
+      transition: width 0.4s ease;
+    }
+    .info-block:hover .section-label::after {
+      width: 100%;
+    }
+
+    .integrante-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--hof);
+      line-height: 1.7;
+      display: block;
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+    .integrante-name:hover {
+      color: var(--rausch);
+      transform: translateX(4px);
+    }
+
+    .info-value {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--hof);
+      line-height: 1.6;
+    }
+    .info-value.highlight {
+      color: var(--babu);
+      font-weight: 600;
+    }
+
+    /* ===== RIGHT CONTENT — SKYLINE ===== */
+    .right-content {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0 80px 0 0;
+      overflow: hidden;
+    }
+    .skyline-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: flex-end;
+      animation: skylineRise 1.2s 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .skyline-container svg {
+      width: 100%;
+      height: 90%;
+      display: block;
+    }
+
+    /* SVG building groups — subtle float */
+    .buildings-far {
+      animation: softFloat 6s ease-in-out infinite;
+    }
+    .buildings-mid {
+      animation: softFloat 5s 0.5s ease-in-out infinite;
+    }
+    .buildings-close {
+      animation: softFloat 7s 1s ease-in-out infinite;
+    }
+
+    /* City lights twinkle classes */
+    .city-light {
+      animation: twinkle 2s ease-in-out infinite;
+    }
+    .city-light:nth-child(2n)  { animation-delay: 0.3s; animation-duration: 2.5s; }
+    .city-light:nth-child(3n)  { animation-delay: 0.8s; animation-duration: 1.8s; }
+    .city-light:nth-child(5n)  { animation-delay: 1.2s; animation-duration: 3s; }
+    .city-light:nth-child(7n)  { animation-delay: 0.5s; animation-duration: 2.2s; }
+    .city-light:nth-child(11n) { animation-delay: 1.5s; animation-duration: 2.8s; }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      grid-column: 1 / -1;
+      padding: 0 80px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      animation: fadeSlideUp 0.7s 1.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .footer-source {
+      font-size: 10px;
+      color: var(--foggy);
+      letter-spacing: 0.03em;
+    }
+    .footer-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .footer-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+    }
+    .footer-dot:nth-child(1) {
+      animation: dotPulse 2.4s 2s ease-in-out infinite;
+    }
+    .footer-dot:nth-child(2) {
+      animation: dotPulse 2.4s 2.3s ease-in-out infinite;
+    }
+    .footer-dot:nth-child(3) {
+      animation: dotPulse 2.4s 2.6s ease-in-out infinite;
+    }
+    .footer-dot:nth-child(4) {
+      animation: dotPulse 2.4s 2.9s ease-in-out infinite;
+    }
+
+    /* ===== PRINT ===== */
+    @media print {
+      body { background: none; padding: 0; margin: 0; }
+      .page {
+        box-shadow: none;
+        animation: none;
+      }
+      .page *, .page *::before, .page *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+      @page { size: landscape; margin: 0; }
+    }
+
+    /* ===== RESPONSIVE HINT (so it looks decent on smaller screens) ===== */
+    @media (max-width: 1960px) {
+      body { padding: 1rem; }
+      .page {
+        width: 100vw;
+        height: auto;
+        aspect-ratio: 16/9;
+        transform-origin: top center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Decorative axis lines -->
+    <div class="axis-line-v left"></div>
+    <div class="axis-line-v center"></div>
+    <div class="axis-line-v right"></div>
+    <div class="axis-line-h top"></div>
+    <div class="axis-line-h bottom"></div>
+
+    <!-- Top band -->
+    <div class="top-band">
+      <span class="project-label">Proyecto Final · SAS Visual Analytics</span>
+      <span class="diplomado-label">Analítica y Ciencia de Datos</span>
+    </div>
+
+    <!-- Animated accent stripe -->
+    <div class="accent-stripe"></div>
+
+    <!-- Left content -->
+    <div class="left-content">
+      <div>
+        <div class="title-airbnb">Airbnb</div>
+        <div class="subtitle">Análisis del mercado de hospedaje en <strong>Nueva York</strong></div>
+      </div>
+
+      <div class="data-badges">
+        <span class="badge badge-rausch"><span class="dot"></span>48,895 listados</span>
+        <span class="badge badge-babu"><span class="dot"></span>5 distritos</span>
+        <span class="badge badge-arches"><span class="dot"></span>16 variables</span>
+      </div>
+
+      <div class="team-info">
+        <div class="info-block">
+          <div class="section-label">Integrantes</div>
+          <span class="integrante-name">Brenda Badillo Lemus</span>
+          <span class="integrante-name">Juana María Camargo Lucero</span>
+          <span class="integrante-name">Elías Castellanos Castellanos</span>
+          <span class="integrante-name">Carlos Arturo Loera Ascencio</span>
+          <span class="integrante-name">Brayan Téllez del Ángel</span>
+        </div>
+        <div class="info-block" style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <div class="section-label">Docente</div>
+            <div class="info-value">Juan Manuel Lugo Acebo</div>
+          </div>
+          <div>
+            <div class="section-label">Fecha</div>
+            <div class="info-value highlight">Mayo 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right content — NYC Skyline -->
+    <div class="right-content">
+      <div class="skyline-container">
+        <svg viewBox="0 0 700 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+          <defs>
+            <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FF5A5F" stop-opacity="0.06"/>
+              <stop offset="60%" stop-color="#FC642D" stop-opacity="0.03"/>
+              <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+            </linearGradient>
+            <linearGradient id="bldgGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#FF5A5F"/>
+              <stop offset="100%" stop-color="#FC642D"/>
+            </linearGradient>
+            <linearGradient id="bldgGrad2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FF5A5F" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#FC642D" stop-opacity="0.65"/>
+            </linearGradient>
+            <linearGradient id="reflGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FF5A5F" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#FF5A5F" stop-opacity="0"/>
+            </linearGradient>
+            <!-- Glow filter for lights -->
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          <!-- Sky background -->
+          <rect x="0" y="0" width="700" height="500" fill="url(#skyGrad)"/>
+
+          <!-- Far buildings (parallax layer 1) -->
+          <g class="buildings-far" opacity="0.15" fill="url(#bldgGrad)">
+            <rect x="10" y="330" width="22" height="170"/>
+            <rect x="38" y="310" width="16" height="190"/>
+            <rect x="58" y="345" width="24" height="155"/>
+            <rect x="88" y="315" width="14" height="185"/>
+            <rect x="600" y="325" width="20" height="175"/>
+            <rect x="626" y="340" width="26" height="160"/>
+            <rect x="658" y="310" width="18" height="190"/>
+            <rect x="682" y="350" width="20" height="150"/>
+          </g>
+
+          <!-- Mid buildings (parallax layer 2) -->
+          <g class="buildings-mid" opacity="0.3" fill="url(#bldgGrad)">
+            <rect x="110" y="280" width="20" height="220"/>
+            <rect x="136" y="305" width="26" height="195"/>
+            <rect x="168" y="265" width="16" height="235"/>
+            <rect x="190" y="320" width="24" height="180"/>
+            <rect x="530" y="290" width="22" height="210"/>
+            <rect x="558" y="270" width="16" height="230"/>
+            <rect x="578" y="310" width="28" height="190"/>
+          </g>
+
+          <!-- Close buildings (main skyline) -->
+          <g class="buildings-close" fill="url(#bldgGrad2)">
+            <rect x="218" y="290" width="20" height="210" opacity="0.55"/>
+            <rect x="244" y="250" width="26" height="250" opacity="0.65"/>
+            <rect x="276" y="275" width="18" height="225" opacity="0.55"/>
+
+            <!-- Empire State inspired -->
+            <rect x="300" y="170" width="24" height="330" opacity="0.78"/>
+            <polygon points="306,170 312,120 318,170" fill="url(#bldgGrad)" opacity="0.78"/>
+            <polygon points="303,175 312,145 321,175" fill="url(#bldgGrad2)" opacity="0.6"/>
+            <rect x="310" y="120" width="4" height="26" fill="url(#bldgGrad)" opacity="0.72"/>
+
+            <rect x="330" y="260" width="22" height="240" opacity="0.6"/>
+            <rect x="358" y="230" width="16" height="270" opacity="0.55"/>
+
+            <!-- Tallest tower -->
+            <rect x="380" y="140" width="32" height="360" opacity="0.88"/>
+            <rect x="387" y="105" width="18" height="38" opacity="0.82" fill="url(#bldgGrad)"/>
+            <rect x="392" y="60" width="10" height="48" opacity="0.78" fill="url(#bldgGrad)"/>
+            <rect x="395" y="30" width="5" height="34" opacity="0.72" fill="url(#bldgGrad)"/>
+            <rect x="396.5" y="8" width="2" height="24" fill="var(--rausch)" opacity="0.6"/>
+
+            <rect x="418" y="240" width="24" height="260" opacity="0.6"/>
+            <rect x="448" y="270" width="18" height="230" opacity="0.5"/>
+
+            <!-- Second tall tower -->
+            <rect x="472" y="80" width="28" height="420" opacity="0.82" fill="url(#bldgGrad2)"/>
+            <polygon points="472,120 486,30 500,120" fill="url(#bldgGrad2)" opacity="0.78"/>
+            <rect x="484.5" y="6" width="3" height="26" fill="var(--rausch)" opacity="0.55"/>
+
+            <rect x="506" y="260" width="20" height="240" opacity="0.6"/>
+          </g>
+
+          <!-- Color accents on select buildings -->
+          <rect x="448" y="270" width="18" height="230" opacity="0.1" fill="var(--babu)"/>
+          <rect x="244" y="250" width="26" height="250" opacity="0.08" fill="var(--babu)"/>
+
+          <!-- Ground line -->
+          <line x1="0" y1="500" x2="700" y2="500" stroke="var(--rausch)" stroke-width="2" opacity="0.15"/>
+          <rect x="0" y="488" width="700" height="12" fill="url(#reflGrad)"/>
+
+          <!-- City lights (with twinkle animation) -->
+          <g filter="url(#glow)">
+            <circle class="city-light" cx="290" cy="420" r="1.8" fill="var(--rausch)"/>
+            <circle class="city-light" cx="315" cy="410" r="1.3" fill="var(--rausch)"/>
+            <circle class="city-light" cx="340" cy="430" r="2" fill="var(--rausch)"/>
+            <circle class="city-light" cx="365" cy="405" r="1.2" fill="var(--arches)"/>
+            <circle class="city-light" cx="390" cy="440" r="1.6" fill="var(--rausch)"/>
+            <circle class="city-light" cx="420" cy="415" r="1.1" fill="var(--babu)"/>
+            <circle class="city-light" cx="445" cy="435" r="1.8" fill="var(--rausch)"/>
+            <circle class="city-light" cx="470" cy="410" r="1.3" fill="var(--rausch)"/>
+            <circle class="city-light" cx="495" cy="445" r="1.5" fill="var(--arches)"/>
+            <circle class="city-light" cx="360" cy="390" r="1" fill="var(--rausch)"/>
+            <circle class="city-light" cx="410" cy="385" r="0.8" fill="var(--babu)"/>
+            <circle class="city-light" cx="480" cy="395" r="1.1" fill="var(--rausch)"/>
+            <circle class="city-light" cx="260" cy="450" r="1.2" fill="var(--rausch)"/>
+            <circle class="city-light" cx="520" cy="440" r="1" fill="var(--rausch)"/>
+            <circle class="city-light" cx="330" cy="460" r="0.9" fill="var(--arches)"/>
+            <circle class="city-light" cx="450" cy="455" r="1.1" fill="var(--rausch)"/>
+            <!-- Extra window lights high up -->
+            <circle class="city-light" cx="394" cy="180" r="0.7" fill="var(--rausch)"/>
+            <circle class="city-light" cx="398" cy="220" r="0.6" fill="var(--arches)"/>
+            <circle class="city-light" cx="390" cy="260" r="0.8" fill="var(--rausch)"/>
+            <circle class="city-light" cx="486" cy="150" r="0.7" fill="var(--rausch)"/>
+            <circle class="city-light" cx="482" cy="200" r="0.6" fill="var(--babu)"/>
+            <circle class="city-light" cx="310" cy="240" r="0.7" fill="var(--rausch)"/>
+            <circle class="city-light" cx="306" cy="300" r="0.5" fill="var(--arches)"/>
+          </g>
+
+          <!-- Year label -->
+          <text x="688" y="492" text-anchor="end" font-family="Inter, sans-serif" font-size="9" fill="#767676" opacity="0.4" font-weight="500">NYC 2019</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <span class="footer-source">Fuente: Kaggle / Inside Airbnb · Licencia CC BY 4.0 · 48,895 listados · NYC 2019</span>
+      <div class="footer-dots">
+        <span class="footer-dot" style="background: var(--rausch);"></span>
+        <span class="footer-dot" style="background: var(--babu);"></span>
+        <span class="footer-dot" style="background: var(--arches);"></span>
+        <span class="footer-dot" style="background: var(--foggy);"></span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
