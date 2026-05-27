@@ -25,8 +25,8 @@
 
     /* Page entrance — zoom in from slightly smaller */
     @keyframes pageReveal {
-      0% { opacity: 0; transform: scale(0.96); }
-      100% { opacity: 1; transform: scale(1); }
+      0% { opacity: 0; }
+      100% { opacity: 1; }
     }
 
     /* Fade + slide up */
@@ -110,18 +110,24 @@
     }
 
     /* ===== BODY ===== */
-    html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      overflow: hidden;
+      height: 100%;
+    }
     body {
       font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
       background: #e8e8e8;
       background-image:
         radial-gradient(ellipse at 30% 50%, rgba(255,90,95,.04) 0%, transparent 70%),
         radial-gradient(ellipse at 70% 50%, rgba(0,166,153,.03) 0%, transparent 70%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 2rem;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      position: relative;
     }
 
     /* ===== PAGE CONTAINER ===== */
@@ -460,15 +466,12 @@
       @page { size: landscape; margin: 0; }
     }
 
-    /* ===== RESPONSIVE HINT (so it looks decent on smaller screens) ===== */
-    @media (max-width: 1960px) {
-      body { padding: 1rem; }
-      .page {
-        width: 100vw;
-        height: auto;
-        aspect-ratio: 16/9;
-        transform-origin: top center;
-      }
+    /* ===== RESPONSIVE — JS handles scaling below ===== */
+    .page {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: center center;
     }
   </style>
 </head>
@@ -669,5 +672,16 @@
       </div>
     </div>
   </div>
+  <script>
+    (function() {
+      var page = document.querySelector('.page');
+      function fit() {
+        var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+        page.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+      }
+      fit();
+      window.addEventListener('resize', fit);
+    })();
+  </script>
 </body>
 </html>
